@@ -7,6 +7,8 @@ the final project, this is more a tool to validate the correctness of the other
 classes
 """
 
+import board
+
 class Player:
 
     def __init__(self, isx):
@@ -32,3 +34,38 @@ class Player:
     def lose(self, hist):
         """Basic lose screen"""
         print("You lose")
+
+class ClientSidePlayer:
+
+    def __init__(self, rc, ps, isx):
+        print("Making client side player", isx)
+        self.sols = board.Board(size=3, to_win=3).solutions
+        self.rc = rc
+        self.ps = ps
+        if isx:
+            self.piece = "X"
+        else:
+            self.piece = "O"
+        self.console = Player(isx)
+        self.mainloop()
+
+    def mainloop(self):
+        go = True
+        while go:
+            for message in self.ps.listen():
+                if message["type"] == "message":
+                    data = str(message["data"])[2:-2]
+                    if data[0] == "a":
+                        if data[1] == self.piece:
+                            n, p, x = data[3:].split(", ")
+                            b = board.Board(size=int(n), p=int(p), x=int(x), to_win=3, solutions=self.sols)
+                            move = self.console.play(b)
+                            move = b.convert_tuple_to_integer(*move)
+                            self.rc.publish("game", "b" + str(move))
+                    elif data[0] == 'c':
+                        self.console.win(data[1:])
+                    elif data[0] == 'd':
+                        self.console.lose(data[1:])
+                    elif data[0] == "e":
+                        go = False
+                        break

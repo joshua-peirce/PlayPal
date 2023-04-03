@@ -149,6 +149,12 @@ class Board:
             return PIECE_O
         return PIECE_EMPTY
     
+    def convert_tuple_to_integer(self, row, col):
+        return self.n * row + col
+    
+    def convert_integer_to_tuple(self, move):
+        return (move // self.n, move % self.n)
+    
 if __name__ == "__main__":
     b = Board(size=21, to_win=10)
     print(len(b.solutions))

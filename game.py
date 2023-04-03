@@ -10,6 +10,7 @@ mainloop  and checks for the game being ower.
 from board import Board
 
 class Game:
+    """Class to hold info and play a game"""
     
     def __init__(self, p1, p2):
         """Make a new game with players p1 and p2"""
@@ -17,7 +18,6 @@ class Game:
         self.p2 = p2
         self.board = Board(size=3, to_win=3)
         self.hist = []
-        
 
     def play(self):
         """Play a game"""
@@ -42,7 +42,6 @@ class Game:
         opts = self.board.get_empty_cells()
         move = None
         while move not in opts:
-            print(move)
             if isx:
                move = self.p1.play(self.board)
             else:
@@ -51,7 +50,8 @@ class Game:
         
 if __name__ == "__main__":
     import player #perhaps putting imports here is bad practice but idk
+    import ai_player
     px = player.Player(True)
-    po = player.Player(False)
+    po = ai_player.RandomPlayer(False)
     game = Game(px, po)
     game.play()

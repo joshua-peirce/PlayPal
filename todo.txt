@@ -1,6 +1,6 @@
 Immediate changes to make that josh can think of late at night:
 
-1. get ride of messing with byte data and use decode_responses=True
+1. get rid of messing with byte data and use decode_responses=True
 2. Make it not convert from row, col tuples to integers more than it has to, like it currently does. Only send minimal data over the wire
 3. Fix the prefix system
 4. Document EVERYTHING

@@ -7,3 +7,6 @@ Immediate changes to make that josh can think of late at night:
 5. Probably want to not have a bunch of while True loops all over the place - ask Rachlin for a good way around this
 
 At this point it's acceptable - the above probably takes ~1 hour
+
+Rachel
+- make a class for Server

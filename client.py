@@ -20,6 +20,7 @@ if __name__ == "__main__":
     start_client(int(input("client id: ")))
 
     """
+    FROM RACHLIN CODE
 import redis
 
 def main():

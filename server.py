@@ -13,6 +13,38 @@ pwds = [5, 6, 7, 8]
 
 redis_client = redis.Redis(host=redis_host, port=redis_port)
 
+# ! Rachel: started making Server ckass, feel free to make architectural changes
+
+
+class Server:
+
+    def __init__(self, host, port):
+        self.host = redis_host
+        self.port = redis_port
+        self.queue = []
+        # ! Rachel: do we store locally as well? or grab from Redis every time
+        #self.player_id_list = []
+        self.next_player_id = 1
+        self.next_game_id = 1
+
+    def register_player(self):
+        # should add player to queue
+        # incrememnt next player id
+        pass
+
+    def match_players(self):
+        # based on queue, matches players by first come, first serve
+
+        # if the queue is ever, people are matched with person next to them
+        # each pair is assigned to the next game ID, need to add to game ID as many as there were pairs
+        if self.queue % 2 == 0:
+            pass
+        else:
+            # ignore the last person
+
+
+
+
 class ServerSidePlayer:
     def __init__(self, rc, ps, id):
         print("Making server side player", id)

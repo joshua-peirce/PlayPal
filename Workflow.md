@@ -1,5 +1,5 @@
 # Basic Collaboration Git Workflow:
-
+g
 1. `git pull`
 
    This updates your main branch with any changes that other people have pushed.

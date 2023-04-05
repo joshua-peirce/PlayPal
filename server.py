@@ -13,7 +13,7 @@ pwds = [5, 6, 7, 8]
 
 redis_client = redis.Redis(host=redis_host, port=redis_port)
 
-# ! Rachel: started making Server ckass, feel free to make architectural changes
+# ! Rachel: started making Server class, feel free to make architectural changes
 
 
 class Server:
@@ -21,15 +21,19 @@ class Server:
     def __init__(self, host, port):
         self.host = redis_host
         self.port = redis_port
+        self._start_server()
         self.queue = []
         # ! Rachel: do we store locally as well? or grab from Redis every time
         #self.player_id_list = []
         self.next_player_id = 1
         self.next_game_id = 1
 
+    def _start_server(self):
+        pass
+
     def register_player(self):
         # should add player to queue
-        # incrememnt next player id
+        # increment next player id
         pass
 
     def match_players(self):
@@ -41,6 +45,9 @@ class Server:
             pass
         else:
             # ignore the last person
+            pass
+
+
 
 
 
@@ -73,6 +80,7 @@ def start_server():
     ps = redis_client.pubsub()
     ps.subscribe("game")
     ids = []
+    redis_client.lpush("player_ids", 0)
     while True:
         for message in ps.listen():
             if message["type"] == "message":

@@ -1,36 +1,5 @@
-"""
-Date: 4/2/23
-
-"""
-
 import redis
-import player
-redis_host = 'localhost'
-redis_port = 6379
 
-
-class Client:
-    pass
-
-rc = redis.Redis(host=redis_host, port=redis_port)
-
-
-def start_client():
-    ps = rc.pubsub()
-    last_id = rc.llen('player_ids')
-    print(last_id)
-    ps.subscribe(last_id)
-    rc.lpush('player_ids', 0)
-
-    rc.publish("game", f"join:{last_id}")
-    player.ClientSidePlayer(rc, ps, id==0)
-
-if __name__ == "__main__":
-    start_client()
-
-    """
-    FROM RACHLIN CODE
-import redis
 
 def main():
     r = redis.Redis('localhost', 6379, decode_responses=True)
@@ -48,4 +17,4 @@ def main():
                         f"answer for job {id} is {answer}")
 
 
-main()"""
+main()

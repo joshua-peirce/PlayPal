@@ -4,6 +4,7 @@ Server class
 
 import redis
 import game
+from ServerSidePlayer import ServerSidePlayer
 
 redis_host = 'localhost'
 redis_port = 6379
@@ -11,7 +12,8 @@ redis_port = 6379
 user_ids = [1, 2, 3, 4]
 pwds = [5, 6, 7, 8]
 
-redis_client = redis.Redis(host=redis_host, port=redis_port)
+rc = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
+ps = rc.pubsub()
 
 # ! Rachel: started making Server class, feel free to make architectural changes
 
@@ -36,53 +38,24 @@ class Server:
         # increment next player id
         pass
 
-    def match_players(self):
-        # based on queue, matches players by first come, first serve
-
-        # if the queue is ever, people are matched with person next to them
-        # each pair is assigned to the next game ID, need to add to game ID as many as there were pairs
-        if self.queue % 2 == 0:
-            pass
-        else:
-            # ignore the last person
-            pass
-
-
-class ServerSidePlayer:
-    def __init__(self, rc, ps, id):
-        print("Making server side player", id)
-        self.ps = ps
-        self.rc = rc
-        self.id = id
-
-    def play(self, board):
-        self.rc.publish("game", "a" + self.id + str(board.get_seed()))
-        while True:
-            for message in self.ps.listen():
-                if message["type"] == "message":
-                    data = str(message["data"])[2:-1]
-                    if data[0] == "b":
-                        move = int(data[1:])
-                        if move in board.get_empty_cells_integer():
-                            return board.convert_integer_to_tuple(move)
-
-    def win(self, hist):
-        pass
-
-    def lose(self, hist):
-        pass
-
+    # def match_players(self):
+    #     # based on queue, matches players by first come, first serve
+    #
+    #     # if the queue is ever, people are matched with person next to them
+    #     # each pair is assigned to the next game ID, need to add to game ID as many as there were pairs
+    #     if self.queue % 2 == 0:
+    #         pass
+    #     else:
+    #         # ignore the last person
+    #         pass
 
 def start_server():
-    ps = redis_client.pubsub()
 
-    # adds new player
-    redis_client.lpush("player_ids", 0)
+    # open a channel for the next player to join
+    new_id = rc.llen('player_ids') + 1
+    ps.subscribe(f'player{new_id}')
 
-    ps.subscribe('player0')
-    
-
-
+    ids = []
     while True:
         for message in ps.listen():
 
@@ -97,21 +70,37 @@ def start_server():
                 # d = win
                 # e = over
                 if data[0] == "j":
+                    channel = message['channel']
+
+                    # add player to queue
+                    rc.lpush('queue', channel)
 
                     ids.append(int(data[data.find(":")+1]))
                     if len(ids) == 2:
                         # subscribe to all the player channels
 
-                        p1 = ServerSidePlayer(redis_client, ps, "X")
-                        p2 = ServerSidePlayer(redis_client, ps, "O")
+                        p1 = ServerSidePlayer(rc, ps, "X")
+                        p2 = ServerSidePlayer(rc, ps, "O")
                         g = game.Game(p1, p2)
                         print("game played", g.play())
                         # telling everyone that the game is over
-                        redis_client.publish("game", "eeeee")
+                        rc.publish("game", "eeeee")
                 elif data[0] == "e":
                     print("Ending server")
                     return
 
 
+def matchmake():
+    queue = rc.lrange('queue', 0, -1)
+    channel1 = queue[0]
+    channel2 = queue[1]
+
+    p1 = ServerSidePlayer(rc, ps, channel1, "X")
+    p2 = ServerSidePlayer(rc, ps, channel2, "O")
+    g = game.Game(p1, p2)
+    print("game played", g.play())
+    # telling everyone that the game is over
+    
+    
 if __name__ == "__main__":
     start_server()

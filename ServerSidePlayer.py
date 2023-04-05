@@ -1,12 +1,13 @@
 class ServerSidePlayer:
-    def __init__(self, rc, ps, id):
+    def __init__(self, rc, ps, channel, id):
         print("Making server side player", id)
-        self.ps=ps
-        self.rc=rc
-        self.id=id
+        self.ps = ps
+        self.rc = rc
+        self.channel = channel
+        self.id = id
 
     def play(self, board):
-        self.rc.publish("game", "a" + self.id + str(board.get_seed()))
+        self.rc.publish(self.channel, "a" + self.id + str(board.get_seed()))
         while True:
             for message in self.ps.listen():
                 if message["type"] == "message":

@@ -23,14 +23,12 @@ def start_client():
 
     # sub to individual channel
     ps.subscribe(f"player{last_id}")
-    # append 0
+    # increase length of player list
     rc.lpush('player_ids', 0)
 
     # have them subscribe to game channel?
-
-
     rc.publish(f"player{last_id}", f"join:player{last_id}")
-    player.ClientSidePlayer(rc, ps, id==0)
+    player.ClientSidePlayer(rc, ps, id == 0)
 
 if __name__ == "__main__":
     start_client()

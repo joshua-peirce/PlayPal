@@ -17,12 +17,19 @@ rc = redis.Redis(host=redis_host, port=redis_port)
 
 def start_client():
     ps = rc.pubsub()
+
     last_id = rc.llen('player_ids')
     print(last_id)
-    ps.subscribe(last_id)
+
+    # sub to individual channel
+    ps.subscribe(f"player{last_id}")
+    # append 0
     rc.lpush('player_ids', 0)
 
-    rc.publish("game", f"join:{last_id}")
+    # have them subscribe to game channel?
+
+
+    rc.publish(f"player{last_id}", f"join:player{last_id}")
     player.ClientSidePlayer(rc, ps, id==0)
 
 if __name__ == "__main__":

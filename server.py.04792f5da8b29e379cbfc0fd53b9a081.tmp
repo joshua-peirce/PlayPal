@@ -79,7 +79,6 @@ def start_server():
     # adds new player
     redis_client.lpush("player_ids", 0)
 
-    ps.subscribe('player0')
     
 
 

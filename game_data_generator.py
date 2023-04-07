@@ -3,7 +3,7 @@ import game
 import pandas as pd
 import random
 
-NUM_GAMES = 100000
+NUM_GAMES = 10000
 NUM_PLAYERS = 1000
 
 def play_random_game(p1n, p2n):
@@ -16,8 +16,8 @@ if __name__ == "__main__":
     df = pd.DataFrame()
     for i in range(NUM_GAMES):
         #Make player names
-        player_1_name = "Player " + str(random.randrange(NUM_PLAYERS))
-        player_2_name = "Player " + str(random.randrange(NUM_PLAYERS))
+        player_1_name = str(random.randrange(1, NUM_PLAYERS))
+        player_2_name = str(random.randrange(1, NUM_PLAYERS))
         while player_1_name == player_2_name:
             #Not duplicate names
             player_2_name = "Player " + str(random.randrange(NUM_PLAYERS))

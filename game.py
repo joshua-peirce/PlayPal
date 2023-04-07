@@ -17,7 +17,7 @@ class Game:
         self.p1 = p1
         self.p2 = p2
         self.board = Board(size=3, to_win=3)
-        self.hist = []
+        self.hist = ""
 
     def play(self):
         """Play a game"""
@@ -25,7 +25,7 @@ class Game:
         while not (self.board.check_x_wins() or self.board.check_o_wins() or len(self.board.get_empty_cells()) == 0):
             move = self.query_move(isx)
             self.board = self.board.add_piece(*move, isx)
-            self.hist.append(self.board.get_seed())
+            self.hist += str(self.board.convert_tuple_to_integer(*move))
             isx = not isx
         if self.board.check_x_wins():
             self.p1.win(self.hist)
@@ -38,7 +38,7 @@ class Game:
         else:
             self.p1.draw(self.hist)
             self.p2.draw(self.hist)
-            return "Draw", self.hist 
+            return "0", self.hist 
 
     def query_move(self, isx):
         """Get a move from player.
@@ -52,7 +52,8 @@ class Game:
             else:
                 move = self.p2.play(self.board)
         return move
-        
+
+""" Deprecated      
 if __name__ == "__main__":
     import player #perhaps putting imports here is bad practice but idk
     import ai_player
@@ -60,3 +61,4 @@ if __name__ == "__main__":
     po = ai_player.RandomPlayer(False)
     game = Game(px, po)
     game.play()
+"""

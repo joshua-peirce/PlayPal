@@ -10,14 +10,14 @@ class RandomPlayer:
         """Play a random move"""
         return random.choice(board.get_empty_cells())
     
-    def win(self, hist):
+    def win(self, board, hist):
         """Random player won: Do nothing"""
         pass
 
-    def lose(self, hist):
+    def lose(self, board, hist):
         """Random player lost: Do nothing"""
         pass
 
-    def draw(self, hist):
+    def draw(self, board, hist):
         """Random player drew: Do nothing"""
         pass

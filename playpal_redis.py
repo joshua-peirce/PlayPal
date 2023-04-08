@@ -1,5 +1,6 @@
 """
-playpal redis
+PlayPal Redis API
+Functions to be run in the PlayPal Driver App
 """
 
 # import statements
@@ -19,109 +20,121 @@ class PlayPI:
     def flush_all(self):
         self.r.flushall()
 
-    def insert_one_user(self, user_id, pw, rating, skill_level):
-        self.r.sadd(f'users:{user_id}', pw, rating, skill_level)
+    def insert_one_user(self, user_id, pw, rating = 100, skill_level = 'beginner'):
+        """ insert a single user """
+        self.r.hmset(f'users:{user_id}', {'pw': pw, 'rating': rating, 'skill_level': skill_level})
 
     def insert_all_users(self, users):
-        """ insert all users """
+        """ insert all users given a list of lists with user info """
         pipe = self.r.pipeline()
         for user_id, pw, rating, skill_level in users:
-            pipe.sadd(f'users:{user_id}', pw, rating, skill_level)
+            pipe.hmset(f'users:{user_id}', {'pw': pw, 'rating': rating, 'skill_level': skill_level})
         pipe.execute()
 
-    def insert_one_game(self, game_id, p1, p2, ):
+    def get_user(self, user_id):
+        """ gets info about a particular user """
+        # fields to get about a user
+        fields = ['pw', 'rating', 'skill_level']
 
-    def get_followers(self, user_id):
-        """ gets who is following a particular user """
-        followers = self.r.smembers(f"follows:{user_id}")
-        return followers
+        pw, rating, skill_level = self.r.hmget(f'users:{user_id}', fields)
+        return(user_id, pw, rating, skill_level)
 
-    def post_tweet(self, user_id, text):
-        """
-        posts single tweet
-        where the key is the tweet ID (perhaps “Tweet:12345”)
-        and the value is the contents of the tweet
-        """
+    def user_rating(self, user_id):
+        """ gets user rating as int """
+        return int(self.r.hget(f'users:{user_id}', 'rating'))
 
-        # generate random tweet_id
-        tweet_id = str(uuid.uuid4())
-        # generate timestamp at time of insert
-        timestamp = time.time() * 1000
+    def user_skill(self, user_id):
+        """ gets user rating """
+        return self.r.hget(f'users:{user_id}', 'skill_level')
 
-        # post the tweet
-        self.r.hmset(f"tweet:{tweet_id}", {"user_id": user_id,
-                                           "timestamp": timestamp,
-                                           "text": text})
+    def update_rating(self, user_id, amt):
+        """ add/subtract certain amount to user rating after a game """
+        return self.r.hincrby(f'users:{user_id}', 'rating', amt)
+    def update_skill(self, user_id, new_skill):
+        """ updates user rating """
+        return self.r.hset(f'users:{user_id}', 'skill_level', new_skill)
+    def set_rating(self, user_id, amt):
+        """ sets rating to certain amount """
+        return self.r.hset(f'users:{user_id}', 'rating', amt)
 
-    def post_tweet_timelines(self, user_id, text):
-        """ posts single tweet and updates the followers timelines """
+    def set_skil(self, user_id, skill):
+        """ sets skill to certain level """
+        return self.r.hset(f'users:{user_id}', 'skill_level', skill)
 
-        # generate random tweet_id
-        tweet_id = str(uuid.uuid4())
-        # generate timestamp at time of insert
-        timestamp = time.time() * 1000
+    def insert_one_game(self, game_id, p1, p2, winner, loser, game_pattern):
+        """ insert a single game and update users' ratings and skill_levels """
+        self.r.hmset(f'games:{game_id}',
+                     {'player1': p1, 'player2': p2, 'winner': winner, 'loser': loser, 'game_pattern': game_pattern})
 
-        # post the tweet
-        self.r.hmset(f"tweet:{tweet_id}", {"user_id": user_id,
-                                           "timestamp": timestamp,
-                                           "text": text})
+    def insert_all_games(self, games):
+        """ insert all games given a list of lists with game info """
+        pipe = self.r.pipeline()
+        for game_id, p1, p2, winner, loser, game_pattern in games:
+            self.r.hmset(f'games:{game_id}',
+                         {'player1': p1, 'player2': p2, 'winner': winner, 'loser': loser, 'game_pattern': game_pattern})
+        pipe.execute()
 
-        # get all followers for the user
-        followers = self.get_followers(user_id)
-        pipeline = self.r.pipeline()
+    def get_game(self, game_id):
+        """ gets info about a particular user """
+        # fields to get about a user
+        fields = ['player1', 'player2', 'winner', 'loser', 'game_pattern']
 
-        # add the tweet to each of the user's followers' timelines
-        for follower in followers:
-            pipeline.lpush(f"timeline:{follower}", tweet_id)
+        p1, p2, winner, loser, pattern = self.r.hmget(f'games:{game_id}', fields)
+        return (game_id, p1, p2, winner, loser, pattern)
 
-        pipeline.execute()
+    def game_pattern(self, game_id):
+        """ gets game pattern for particular game_id """
+        return self.r.hget(f'games:{game_id}', 'game_pattern')
 
-    def make_and_get_timeline(self, user_id):
-        """
-        gets the 10 most recent tweets
-        from everyone user_id follows
-        """
+    def get_all_games(self, user_id):
+        """ get all the games that particular user was in """
+        game_ids = self.r.keys('games:*')  # get all game IDs
+        user_games = []
 
-        # get followers
-        followers = self.get_followers(user_id)
+        for game_id in game_ids:
+            game_data = self.r.hgetall(game_id)
+            if game_data['player1'] == user_id or game_data['player2'] == user_id:
+                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                user_games.append(game_data_dict)
 
-        tweets = []
-        # add tweets from each follower to timeline
-        for follower in followers:
-            follower_tweets = self.user_tweets(follower)
-            # Add the tweets to the list
-            tweets.extend(follower_tweets)
+        return user_games
 
-        # sort by timestamp in desc order
-        sorted_tweets = sorted(tweets, key=lambda x: float(x['timestamp']), reverse=True)
-        # return 10 most recent tweets
-        return sorted_tweets[:10]
+    def get_all_wins(self, user_id):
+        """ get all the games that particular user was in """
+        game_ids = self.r.keys('games:*')  # get all game IDs
+        won_games = []
 
-    def get_timeline(self, user_id):
-        """ gets 10 most recent tweets from particular user """
+        for game_id in game_ids:
+            game_data = self.r.hgetall(game_id)
+            if game_data['winner'] == user_id:
+                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                won_games.append(game_data_dict)
 
-        # gets tweet_ids from timeline
-        timeline = self.r.lrange(f"timeline:{user_id}", 0, 9)
+        return won_games
 
-        # gets tweet info (user_id, text, and timestamp) for each timeline tweet
-        tweet_info = []
-        for tweet_id in timeline:
-            tweet = self.r.hgetall(f"tweet:{tweet_id}")
-            tweet_info.append(tweet)
-        # sort 10 most recent tweets for timeline
-        tweet_info = sorted(tweet_info, key=lambda x: x["timestamp"], reverse=True)
-        return tweet_info[:10]
+    def get_all_losses(self, user_id):
+        """ get all the games that particular user was in """
+        game_ids = self.r.keys('games:*')  # get all game IDs
+        lost_games = []
 
-    def user_tweets(self, user_id):
-        """ gets all the tweets tweeted by one user """
-        tweets = []
-        for tweet_id in self.r.scan_iter(match=f"tweet:*"):
-            tweet = self.r.hgetall(tweet_id)
-            if tweet["user_id"] == str(user_id):
-                tweets.append(tweet)
-        return tweets
+        for game_id in game_ids:
+            game_data = self.r.hgetall(game_id)
+            if game_data['loser'] == user_id:
+                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                lost_games.append(game_data_dict)
 
-    def get_unique_users(self, df):
-        """ gets unique user_ids from a df """
-        unique_user_ids = df['USER_ID'].drop_duplicates().tolist()
-        return unique_user_ids
+        return lost_games
+
+    def get_all_draws(self, user_id):
+        """ get all the games that particular user was in """
+        game_ids = self.r.keys('games:*')  # get all game IDs
+        tied_games = []
+
+        for game_id in game_ids:
+            game_data = self.r.hgetall(game_id)
+            if game_data['player1'] == user_id or game_data['player2'] == user_id:
+                if game_data['winner'] == '0':
+                    game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                    tied_games.append(game_data_dict)
+
+        return tied_games

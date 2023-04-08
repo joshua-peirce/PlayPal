@@ -30,15 +30,15 @@ class Game:
         if self.board.check_x_wins():
             self.p1.win(self.hist)
             self.p2.lose(self.hist)
-            return "X", self.hist 
+            return "X", "O", self.hist
         elif self.board.check_o_wins():
             self.p1.lose(self.hist)
             self.p2.win(self.hist)
-            return "O", self.hist 
+            return "O", "X", self.hist
         else:
             self.p1.draw(self.hist)
             self.p2.draw(self.hist)
-            return "0", self.hist 
+            return "0", "0", self.hist
 
     def query_move(self, isx):
         """Get a move from player.

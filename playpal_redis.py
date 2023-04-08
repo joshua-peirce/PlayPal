@@ -7,6 +7,7 @@ Functions to be run in the PlayPal Driver App
 import redis
 import uuid
 import time
+import game
 
 
 class PlayPI:
@@ -35,7 +36,6 @@ class PlayPI:
         """ gets info about a particular user """
         # fields to get about a user
         fields = ['pw', 'rating', 'skill_level']
-
         pw, rating, skill_level = self.r.hmget(f'users:{user_id}', fields)
         return(user_id, pw, rating, skill_level)
 
@@ -50,9 +50,11 @@ class PlayPI:
     def update_rating(self, user_id, amt):
         """ add/subtract certain amount to user rating after a game """
         return self.r.hincrby(f'users:{user_id}', 'rating', amt)
+    
     def update_skill(self, user_id, new_skill):
         """ updates user rating """
         return self.r.hset(f'users:{user_id}', 'skill_level', new_skill)
+    
     def set_rating(self, user_id, amt):
         """ sets rating to certain amount """
         return self.r.hset(f'users:{user_id}', 'rating', amt)
@@ -78,7 +80,6 @@ class PlayPI:
         """ gets info about a particular user """
         # fields to get about a user
         fields = ['player1', 'player2', 'winner', 'loser', 'game_pattern']
-
         p1, p2, winner, loser, pattern = self.r.hmget(f'games:{game_id}', fields)
         return (game_id, p1, p2, winner, loser, pattern)
 
@@ -90,51 +91,43 @@ class PlayPI:
         """ get all the games that particular user was in """
         game_ids = self.r.keys('games:*')  # get all game IDs
         user_games = []
-
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['player1'] == user_id or game_data['player2'] == user_id:
                 game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
                 user_games.append(game_data_dict)
-
         return user_games
 
     def get_all_wins(self, user_id):
         """ get all the games that particular user was in """
         game_ids = self.r.keys('games:*')  # get all game IDs
         won_games = []
-
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['winner'] == user_id:
                 game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
                 won_games.append(game_data_dict)
-
         return won_games
 
     def get_all_losses(self, user_id):
         """ get all the games that particular user was in """
         game_ids = self.r.keys('games:*')  # get all game IDs
         lost_games = []
-
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['loser'] == user_id:
                 game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
                 lost_games.append(game_data_dict)
-
         return lost_games
 
     def get_all_draws(self, user_id):
         """ get all the games that particular user was in """
         game_ids = self.r.keys('games:*')  # get all game IDs
         tied_games = []
-
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['player1'] == user_id or game_data['player2'] == user_id:
                 if game_data['winner'] == '0':
                     game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
                     tied_games.append(game_data_dict)
-
         return tied_games

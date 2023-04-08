@@ -49,6 +49,7 @@ class Player:
 
     def end(self, ending, board, hist):
         """Generic end screen"""
+        print()
         print("You " + ending)
         print("Final board:")
         self.print_board(board)

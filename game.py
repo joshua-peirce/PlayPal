@@ -28,16 +28,16 @@ class Game:
             self.hist += str(self.board.convert_tuple_to_integer(*move))
             isx = not isx
         if self.board.check_x_wins():
-            self.p1.win(self.hist)
-            self.p2.lose(self.hist)
+            self.p1.win(self.board, self.hist)
+            self.p2.lose(self.board, self.hist)
             return "X", "O", self.hist
         elif self.board.check_o_wins():
-            self.p1.lose(self.hist)
-            self.p2.win(self.hist)
+            self.p1.lose(self.board, self.hist)
+            self.p2.win(self.board, self.hist)
             return "O", "X", self.hist
         else:
-            self.p1.draw(self.hist)
-            self.p2.draw(self.hist)
+            self.p1.draw(self.board, self.hist)
+            self.p2.draw(self.board, self.hist)
             return "0", "0", self.hist
 
     def query_move(self, isx):
@@ -53,7 +53,6 @@ class Game:
                 move = self.p2.play(self.board)
         return move
 
-""" Deprecated      
 if __name__ == "__main__":
     import player #perhaps putting imports here is bad practice but idk
     import ai_player
@@ -61,4 +60,3 @@ if __name__ == "__main__":
     po = ai_player.RandomPlayer(False)
     game = Game(px, po)
     game.play()
-"""

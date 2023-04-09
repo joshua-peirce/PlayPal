@@ -8,10 +8,13 @@ import redis
 import uuid
 import time
 import game
+from tabulate import tabulate
+import pandas as pd
+from collections import Counter
 
 
 class PlayPI:
-    """ API simulating basic Twitter """
+    """ API simulating Tic Tac Toe Game """
 
     def __init__(self, channel, host='localhost', port=6379, db=0):
         """ initialize connection and flush any previous connection """
@@ -131,3 +134,29 @@ class PlayPI:
                     game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
                     tied_games.append(game_data_dict)
         return tied_games
+
+    def get_game_history(self, user_id):
+
+        wins = self.get_all_wins(user_id)
+        # most commonly played first move
+        first_move = [int(game['game_pattern'][0]) for game in wins]
+        counter = Counter(first_move)
+        most_common_first = counter.most_common(1)[0][0]
+
+        # show # of games won/lost by user
+        games = len(self.get_all_games(user_id))
+        wins = len(self.get_all_wins(user_id))
+        losses = len(self.get_all_losses(user_id))
+        draws = len(self.get_all_draws(user_id))
+
+        # make sure they have played at least 1 game to avoid divide by 0
+        if games != 0:
+            win_rate = wins/games
+        else:
+            win_rate = 0
+
+        
+        table = [['Wins', 'Losses', 'Draws', 'Win Rate', 'Most Common'],
+                 [wins, losses, draws, win_rate, most_common_first ]]
+
+        print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))

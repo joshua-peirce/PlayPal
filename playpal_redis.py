@@ -217,12 +217,12 @@ class PlayPI:
 
         # make sure they have played at least 1 game to avoid divide by 0
         if games != 0:
-            win_rate = wins/games
+            win_rate = (wins/games) * 100
         else:
             win_rate = 0
 
         
-        table = [['Wins', 'Losses', 'Draws', 'Win Rate', 'Most Common'],
+        table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
                  [wins, losses, draws, win_rate, most_common_first ]]
 
         print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
@@ -255,18 +255,25 @@ class PlayPI:
 
         # if logged in then play
         if valid_user:
-            print('Login Successful')
+            print('Login Successful\n')
+
             self.launch_app(username)
 
         else:
             print("Invalid User ID or Password.")
-            user_answer = input("Enter 1 to login again, Enter 2 to make a new account. ")
-            if user_answer == "1":
-                self.login()
+            user_answer = input("Login Again (1)\n"
+                                "Create New Account (2)\n"
+                                "Close App (9)\n"
+                                "-->   ")
+            if user_answer == "9":
+                print("Goodbye!")
             else:
-                new_user_id = self.get_new_id("users")
-                print("Your User Id is", new_user_id)
-                self.create_account(new_user_id)
+                if user_answer == "1":
+                    self.login()
+                else:
+                    new_user_id = self.get_new_id("users")
+                    print("Your User Id is", new_user_id)
+                    self.create_account(new_user_id)
 
     def create_account(self, new_user_id):
         """ make new user account """
@@ -302,31 +309,59 @@ class PlayPI:
 
     def launch_app(self, user_id):
         """ PlayPal app with options to play a game or get game history """
-        user_choice = int(input("Enter 1 to play a new game. Enter 2 to view your game history. "))
+        user_choice = input("New Game (1)\n"
+                                "Game History (2)\n"
+                                "Close App (9)\n"
+                                "-->   ")
+        print()
+        if user_choice == "9":
+            print("Goodbye!")
+            return
+        else:
+            if user_choice == "1":
+                chosen_skill_level = input("Choose Game Level:\n"
+                                           "Beginner (1), Intermediate (2), Advanced (3) \n"
+                                           "Enter anything else for a random skill level.\n"
+                                           "-->   ")
+                print("\n")
+                opponent_id = self.get_opponent(user_id, chosen_skill_level)
+                opponent_rating = self.user_rating(opponent_id)
+                opponent_skill = self.user_skill(opponent_id)
+                print("You will be playing against a(n)", opponent_skill, "level player")
 
-        if user_choice == 1:
-            chosen_skill_level = input("Choose Game Level:\n"
-                                       "Beginner (1), Intermediate (2), Advanced (3) \n"
-                                       "Enter anything else for a random skill level.")
-            opponent_id = self.get_opponent(user_id)
-            opponent_skill = self.user_skill(opponent_id)
-            print("You will be playing against a(n)", opponent_skill, "level player")
+                # PLAY GAME HERE WITH USERNAME AND OPPONENT ID
+                # JOSH - HERE
 
-            # PLAY GAME HERE WITH USERNAME AND OPPONENT ID
-            # JOSH - HERE
-            # G = game.Game(username, opponent_id)
-            # winner, loser, hist = G.play()
-            game_id = self.get_new_id("games")
-            print(game_id)
-            winner, loser, hist = user_id, opponent_id, '72461'
-            self.insert_one_game(game_id, user_id, opponent_id, winner, loser, hist)
-            # PRINT FINAL BOARD
+                # G = game.Game(username, opponent_id)
+                # winner, loser, hist = G.play()
+
+                # generate next game_id
+                game_id = self.get_new_id("games")
+                winner, loser, hist = user_id, opponent_id, '72461'
+
+                # PRINT FINAL BOARD
+                # print info about game and updated rating
+                if user_id == winner:
+                    print('You beat a(n)', opponent_skill, 'player with a rating of', opponent_rating)
+                elif user_id == loser:
+                    print('You lost to a(n)', opponent_skill, 'player with a rating of', opponent_rating)
+                else:
+                    print('It was a tie between you and your opponent. They were a(n)', opponent_skill,
+                          'level player with a rating of', opponent_rating)
+                new_user_rating = self.user_rating(user_id)
+                print('After playing, your new rating is', new_user_rating)
 
 
+                self.insert_one_game(game_id, user_id, opponent_id, winner, loser, hist)
+                # PRINT FINAL BOARD
+
+            elif user_choice == "2":
+                self.get_game_history(user_id)
 
 
-        elif user_choice == 2:
-            self.get_game_history(user_id)
+            # load app again
+            print()
+            self.launch_app(user_id)
 
     def get_opponent(self, user_id, skill = "4"):
         """ get opponent's user id """

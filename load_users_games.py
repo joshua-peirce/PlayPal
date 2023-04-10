@@ -137,6 +137,11 @@ def main():
     # check updated status of user 25 after playing a bunch of games
     print(api.get_user(25))
 
+    # load in advanced users
+    api.insert_one_user(1001, 'ejdvhew2', 400, 'advanced')
+    api.insert_one_user(1002, 'dwqbhew2', 450, 'advanced')
+    api.insert_one_user(1003, 'denjwvn3', 500, 'advanced')
+
 
 
 if __name__ == '__main__':

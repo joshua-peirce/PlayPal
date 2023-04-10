@@ -81,6 +81,14 @@ class PlayPI:
         self.r.hmset(f'games:{game_id}',
                      {'player1': p1, 'player2': p2, 'winner': winner, 'loser': loser, 'game_pattern': game_pattern})
 
+        # keep track of winning first move in Redis
+        # if X won, get their first move
+        if winner == p1:
+            self.r.lpush('winning_first_move', (str(game_pattern)[0]))
+        # if O won, get their first move
+        elif winner == p2:
+            self.r.lpush('winning_first_move', (str(game_pattern)[1]))
+
         # if not a draw
         if winner != 0:
             self.update_winner(winner)
@@ -212,42 +220,62 @@ class PlayPI:
         return tied_games
 
     def get_game_history(self, user_id):
+
         # get number of games played by that user
-        games = len(self.get_all_games(user_id))
+        games = self.get_all_games(user_id)
+        num_games = len(games)
+
+        # get all their wins
+        wins = self.get_all_wins(user_id)
 
         # if zero games, fill with zeros
-        if games == 0:
-            table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
+        if num_games == 0:
+            table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Best First Position'],
                      [0, 0, 0, 0]]
             print('No game history yet. Play some games to generate data!')
         else:
-            wins_game_hist = self.get_all_wins(user_id)
-            # most commonly played first move
-            first_move = [int(game['game_pattern'][0])
-                          for game in wins_game_hist]
+            # get the first move on the board if they were player1
+            first_move = [game['game_pattern'][0] if game['player1'] == user_id else
+                          game['game_pattern'][1] for game in wins]
+            # most commonly played first move by winner
             counter = Counter(first_move)
-            most_common_first = counter.most_common(1)[0][0]
-            most_common_first_coord = str(Board(size=3, to_win=3).convert_integer_to_tuple(most_common_first))
+            most_common_first = int(counter.most_common(1)[0][0])
+            most_common_first_coord = str(
+                Board(size=3, to_win=3).convert_integer_to_tuple(most_common_first))
 
             # show # of games won/lost by user
-            wins = len(self.get_all_wins(user_id))
-            losses = len(self.get_all_losses(user_id))
-            draws = len(self.get_all_draws(user_id))
+            num_wins = len(wins)
+            num_losses = len(self.get_all_losses(user_id))
+            num_draws = len(self.get_all_draws(user_id))
 
             # make sure they have played at least 1 game to avoid divide by 0
-            if games != 0:
-                win_rate = (wins/games) * 100
+            if num_games != 0:
+                win_rate = (num_wins/num_games) * 100
             else:
                 win_rate = 0
 
+            # create the table to output summary stats to the user
             table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
-                     [wins, losses, draws, win_rate, most_common_first_coord]]
+                     [num_wins, num_losses, num_draws, win_rate, most_common_first_coord]]
 
+        # tabulate library allows us pretty print the table
         game_hist_table = tabulate(
             table, headers='firstrow', tablefmt='fancy_grid')
         print(game_hist_table)
 
-        return game_hist_table
+    def overall_best_first_move(self):
+        """ gets the game history for the whole PlayPal API """
+        # fetches all the winning first moves
+        winning_first_moves = self.r.lrange('winning_first_move', 0, -1)
+
+        # determines the most common first move that resulted in a win
+        counter = Counter(winning_first_moves)
+        most_common_first = int(counter.most_common(1)[0][0])
+
+        # convert to human readable format
+        most_common_first_coord = str(
+            Board(size=3, to_win=3).convert_integer_to_tuple(most_common_first))
+        print(most_common_first_coord)
 
     def valid_user(self, user_id, pw):
         """ checks if the user exists/they inputted pw correctly """
@@ -375,7 +403,6 @@ class PlayPI:
                           'level player with a rating of', opponent_rating)
                 new_user_rating = self.user_rating(user_id)
                 print('After playing, your new rating is', new_user_rating)
-
 
             elif user_choice == "2":
                 self.get_game_history(user_id)

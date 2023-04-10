@@ -13,7 +13,6 @@ import pandas as pd
 from collections import Counter
 import random
 
-
 class PlayPI:
     """ API simulating Tic Tac Toe Game """
 
@@ -28,6 +27,7 @@ class PlayPI:
     def insert_one_user(self, user_id, pw, rating = 100, skill_level = 'beginner'):
         """ insert a single user """
         self.r.hmset(f'users:{user_id}', {'pw': pw, 'rating': rating, 'skill_level': skill_level})
+
 
     def insert_all_users(self, users):
         """ insert all users given a list of lists with user info """
@@ -75,8 +75,12 @@ class PlayPI:
         """ insert a single game and update users' ratings and skill_levels """
         self.r.hmset(f'games:{game_id}',
                      {'player1': p1, 'player2': p2, 'winner': winner, 'loser': loser, 'game_pattern': game_pattern})
-        self.update_winner(winner)
-        self.update_loser(loser)
+
+        # if not a draw
+        if winner != 0:
+            self.update_winner(winner)
+            self.update_loser(loser)
+
     def update_winner(self, user_id):
         """ update user's rating and skill after playing a game """
 
@@ -98,13 +102,8 @@ class PlayPI:
             if new_rating > 500:
                 self.set_rating(user_id, 500)
 
-        # update skill based on new points
-        if rating <= 150:
-            self.update_skill(user_id, 'beginner')
-        elif rating > 150 and rating <= 350:
-            self.update_skill(user_id, 'intermediate')
-        elif rating > 350:
-            self.update_skill(user_id, 'advanced')
+        # update skill with new points
+        self.update_player_skill(user_id, rating, skill)
 
     def update_loser(self, user_id):
         """ update user's rating and skill after playing a game """
@@ -126,13 +125,18 @@ class PlayPI:
             # advanced loser subtracts 5 from rating
             self.update_rating(user_id, -15)
 
-        # update skill based on new points
+        # update skill with new points
+        self.update_player_skill(user_id, rating, skill)
+
+    def update_player_skill(self, user_id, rating, skill):
+        """ updates a user's skill based on rating value """
         if rating <= 150:
             self.update_skill(user_id, 'beginner')
         elif rating > 150 and rating <= 350:
             self.update_skill(user_id, 'intermediate')
         elif rating > 350:
             self.update_skill(user_id, 'advanced')
+
     def insert_all_games(self, games):
         """ insert all games given a list of lists with game info """
         pipe = self.r.pipeline()
@@ -260,7 +264,7 @@ class PlayPI:
             if user_answer == "1":
                 self.login()
             else:
-                new_user_id = self.get_new_user_id()
+                new_user_id = self.get_new_id("users")
                 print("Your User Id is", new_user_id)
                 self.create_account(new_user_id)
 
@@ -280,21 +284,23 @@ class PlayPI:
             print("Passwords don't match")
             self.create_account(new_user_id)
 
-    def get_new_user_id(self):
+    def get_new_id(self, table):
+        """ gets next highest id for particular table keys """
         max_id = 0
         cursor = 0
         while True:
-            cursor, keys = self.r.scan(cursor, match="users:*")
+            cursor, keys = self.r.scan(cursor, match=f"{table}:*")
             for key in keys:
-                user_id = int(key.split(":")[1])
-                if user_id > max_id:
-                    max_id = user_id
+                id = int(key.split(":")[1])
+                if id > max_id:
+                    max_id = id
             if cursor == 0:
                 break
         next_id = max_id + 1
         return next_id
 
-    def launch_app(self, username):
+
+    def launch_app(self, user_id):
         """ PlayPal app with options to play a game or get game history """
         user_choice = int(input("Enter 1 to play a new game. Enter 2 to view your game history. "))
 
@@ -302,15 +308,25 @@ class PlayPI:
             chosen_skill_level = input("Choose Game Level:\n"
                                        "Beginner (1), Intermediate (2), Advanced (3) \n"
                                        "Enter anything else for a random skill level.")
-            opponent_id = self.get_opponent(username)
+            opponent_id = self.get_opponent(user_id)
             opponent_skill = self.user_skill(opponent_id)
             print("You will be playing against a(n)", opponent_skill, "level player")
 
             # PLAY GAME HERE WITH USERNAME AND OPPONENT ID
             # JOSH - HERE
+            # G = game.Game(username, opponent_id)
+            # winner, loser, hist = G.play()
+            game_id = self.get_new_id("games")
+            print(game_id)
+            winner, loser, hist = user_id, opponent_id, '72461'
+            self.insert_one_game(game_id, user_id, opponent_id, winner, loser, hist)
+            # PRINT FINAL BOARD
+
+
+
 
         elif user_choice == 2:
-            self.get_game_history(username)
+            self.get_game_history(user_id)
 
     def get_opponent(self, user_id, skill = "4"):
         """ get opponent's user id """

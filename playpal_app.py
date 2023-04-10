@@ -18,7 +18,7 @@ def main():
 
     if user_answer == 2:
         # give new user_id
-        new_user_id = api.get_new_user_id()
+        new_user_id = api.get_new_id("users")
         print("Your User Id is", new_user_id)
         # make new account
         username = api.create_account(new_user_id)

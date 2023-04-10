@@ -36,63 +36,63 @@ def load_users(filename, api):
     # load user data into users table using api method
     api.insert_all_users(users_lst)
 
-# def update_winner(user_id, api):
-#     """ update user's rating and skill after playing a game """
-#
-#     # get users rating and skill
-#     rating = api.user_rating(user_id)
-#     skill = api.user_skill(user_id)
-#     # update rating
-#     if skill == 'beginner':
-#         # beginner winning adds 15 to rating
-#         api.update_rating(user_id, 15)
-#     elif skill == 'intermediate':
-#         # intermediate winning adds 10 to rating
-#         api.update_rating(user_id, 10)
-#     elif skill == 'advanced':
-#         # advanced winning adds 5 to rating
-#         api.update_rating(user_id, 5)
-#         # maximum rating of 500
-#         new_rating = api.user_rating(user_id)
-#         if new_rating > 500:
-#             api.set_rating(user_id, 500)
-#
-#     # update skill based on new points
-#     if rating <= 150:
-#         api.update_skill(user_id, 'beginner')
-#     elif rating > 150 and rating <= 350:
-#         api.update_skill(user_id, 'intermediate')
-#     elif rating > 350:
-#         api.update_skill(user_id, 'advanced')
-#
-#
-# def update_loser(user_id, api):
-#     """ update user's rating and skill after playing a game """
-#     # get users rating and skill
-#     rating = api.user_rating(user_id)
-#     skill = api.user_skill(user_id)
-#     # update rating
-#     if skill == 'beginner':
-#         # beginner loser subtracts 15 from rating
-#         api.update_rating(user_id, -5)
-#         # minimum rating of 0
-#         new_rating = api.user_rating(user_id)
-#         if new_rating < 0:
-#             api.set_rating(user_id, 0)
-#     elif skill == 'intermediate':
-#         # intermediate loser subtracts 10 from rating
-#         api.update_rating(user_id, -10)
-#     elif skill == 'advanced':
-#         # advanced loser subtracts 5 from rating
-#         api.update_rating(user_id, -15)
-#
-#     # update skill based on new points
-#     if rating <= 150:
-#         api.update_skill(user_id, 'beginner')
-#     elif rating > 150 and rating <= 350:
-#         api.update_skill(user_id, 'intermediate')
-#     elif rating > 350:
-#         api.update_skill(user_id, 'advanced')
+def update_winner(user_id, api):
+    """ update user's rating and skill after playing a game """
+
+    # get users rating and skill
+    rating = api.user_rating(user_id)
+    skill = api.user_skill(user_id)
+    # update rating
+    if skill == 'beginner':
+        # beginner winning adds 15 to rating
+        api.update_rating(user_id, 15)
+    elif skill == 'intermediate':
+        # intermediate winning adds 10 to rating
+        api.update_rating(user_id, 10)
+    elif skill == 'advanced':
+        # advanced winning adds 5 to rating
+        api.update_rating(user_id, 5)
+        # maximum rating of 500
+        new_rating = api.user_rating(user_id)
+        if new_rating > 500:
+            api.set_rating(user_id, 500)
+
+    # update skill based on new points
+    if rating <= 150:
+        api.update_skill(user_id, 'beginner')
+    elif rating > 150 and rating <= 350:
+        api.update_skill(user_id, 'intermediate')
+    elif rating > 350:
+        api.update_skill(user_id, 'advanced')
+
+
+def update_loser(user_id, api):
+    """ update user's rating and skill after playing a game """
+    # get users rating and skill
+    rating = api.user_rating(user_id)
+    skill = api.user_skill(user_id)
+    # update rating
+    if skill == 'beginner':
+        # beginner loser subtracts 15 from rating
+        api.update_rating(user_id, -5)
+        # minimum rating of 0
+        new_rating = api.user_rating(user_id)
+        if new_rating < 0:
+            api.set_rating(user_id, 0)
+    elif skill == 'intermediate':
+        # intermediate loser subtracts 10 from rating
+        api.update_rating(user_id, -10)
+    elif skill == 'advanced':
+        # advanced loser subtracts 5 from rating
+        api.update_rating(user_id, -15)
+
+    # update skill based on new points
+    if rating <= 150:
+        api.update_skill(user_id, 'beginner')
+    elif rating > 150 and rating <= 350:
+        api.update_skill(user_id, 'intermediate')
+    elif rating > 350:
+        api.update_skill(user_id, 'advanced')
 def load_games(filename, api):
     """
     loads games file into DB
@@ -110,13 +110,13 @@ def load_games(filename, api):
         # add game to database
         api.insert_one_game(*game)
 
-        # update both users' rating and skill after a game
-        winner_id = game[WIN_COL]
-        loser_id = game[LOSE_COL]
-
-        if winner_id != 0:
-            api.update_winner(winner_id)
-            api.update_loser(loser_id)
+        # # update both users' rating and skill after a game
+        # winner_id = game[WIN_COL]
+        # loser_id = game[LOSE_COL]
+        #
+        # if winner_id != 0:
+        #     update_winner(winner_id, api)
+        #     update_loser(loser_id, api)
 
 def main():
 

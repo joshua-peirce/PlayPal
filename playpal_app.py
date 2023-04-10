@@ -5,6 +5,7 @@ PlayPal App
 # import statements
 from playpal_redis import PlayPI
 
+
 def start_app(api):
     """ PlayPal Game """
     # ask user if new or returning player
@@ -45,5 +46,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

@@ -13,27 +13,30 @@ import pandas as pd
 from collections import Counter
 import random
 
+
 class PlayPI:
     """ API simulating Tic Tac Toe Game """
 
     def __init__(self, channel, host='localhost', port=6379, db=0):
         """ initialize connection and flush any previous connection """
-        self.r = redis.Redis(host=host, port=port, db=db, decode_responses=True)
+        self.r = redis.Redis(host=host, port=port, db=db,
+                             decode_responses=True)
         self.channel = channel
 
     def flush_all(self):
         self.r.flushall()
 
-    def insert_one_user(self, user_id, pw, rating = 100, skill_level = 'beginner'):
+    def insert_one_user(self, user_id, pw, rating=100, skill_level='beginner'):
         """ insert a single user """
-        self.r.hmset(f'users:{user_id}', {'pw': pw, 'rating': rating, 'skill_level': skill_level})
-
+        self.r.hmset(f'users:{user_id}', {
+                     'pw': pw, 'rating': rating, 'skill_level': skill_level})
 
     def insert_all_users(self, users):
         """ insert all users given a list of lists with user info """
         pipe = self.r.pipeline()
         for user_id, pw, rating, skill_level in users:
-            pipe.hmset(f'users:{user_id}', {'pw': pw, 'rating': rating, 'skill_level': skill_level})
+            pipe.hmset(f'users:{user_id}', {
+                       'pw': pw, 'rating': rating, 'skill_level': skill_level})
         pipe.execute()
 
     def get_user(self, user_id):
@@ -58,11 +61,11 @@ class PlayPI:
     def update_rating(self, user_id, amt):
         """ add/subtract certain amount to user rating after a game """
         return self.r.hincrby(f'users:{user_id}', 'rating', amt)
-    
+
     def update_skill(self, user_id, new_skill):
         """ updates user rating """
         return self.r.hset(f'users:{user_id}', 'skill_level', new_skill)
-    
+
     def set_rating(self, user_id, amt):
         """ sets rating to certain amount """
         return self.r.hset(f'users:{user_id}', 'rating', amt)
@@ -149,7 +152,8 @@ class PlayPI:
         """ gets info about a particular user """
         # fields to get about a user
         fields = ['player1', 'player2', 'winner', 'loser', 'game_pattern']
-        p1, p2, winner, loser, pattern = self.r.hmget(f'games:{game_id}', fields)
+        p1, p2, winner, loser, pattern = self.r.hmget(
+            f'games:{game_id}', fields)
         return (game_id, p1, p2, winner, loser, pattern)
 
     def game_pattern(self, game_id):
@@ -163,7 +167,8 @@ class PlayPI:
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['player1'] == user_id or game_data['player2'] == user_id:
-                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                game_data_dict = dict(
+                    game_id=game_id.split(':')[1], **game_data)
                 user_games.append(game_data_dict)
         return user_games
 
@@ -174,7 +179,8 @@ class PlayPI:
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['winner'] == user_id:
-                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                game_data_dict = dict(
+                    game_id=game_id.split(':')[1], **game_data)
                 won_games.append(game_data_dict)
         return won_games
 
@@ -185,7 +191,8 @@ class PlayPI:
         for game_id in game_ids:
             game_data = self.r.hgetall(game_id)
             if game_data['loser'] == user_id:
-                game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                game_data_dict = dict(
+                    game_id=game_id.split(':')[1], **game_data)
                 lost_games.append(game_data_dict)
         return lost_games
 
@@ -197,35 +204,47 @@ class PlayPI:
             game_data = self.r.hgetall(game_id)
             if game_data['player1'] == user_id or game_data['player2'] == user_id:
                 if game_data['winner'] == '0':
-                    game_data_dict = dict(game_id=game_id.split(':')[1], **game_data)
+                    game_data_dict = dict(
+                        game_id=game_id.split(':')[1], **game_data)
                     tied_games.append(game_data_dict)
         return tied_games
 
     def get_game_history(self, user_id):
-
-        wins = self.get_all_wins(user_id)
-        # most commonly played first move
-        first_move = [int(game['game_pattern'][0]) for game in wins]
-        counter = Counter(first_move)
-        most_common_first = counter.most_common(1)[0][0]
-
-        # show # of games won/lost by user
+        # get number of games played by that user
         games = len(self.get_all_games(user_id))
-        wins = len(self.get_all_wins(user_id))
-        losses = len(self.get_all_losses(user_id))
-        draws = len(self.get_all_draws(user_id))
 
-        # make sure they have played at least 1 game to avoid divide by 0
-        if games != 0:
-            win_rate = (wins/games) * 100
+        # if zero games, fill with zeros
+        if games == 0:
+            table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
+                     [0, 0, 0, 0]]
+            print('No game history yet. Play some games to generate data!')
         else:
-            win_rate = 0
+            wins_game_hist = self.get_all_wins(user_id)
+            # most commonly played first move
+            first_move = [int(game['game_pattern'][0])
+                          for game in wins_game_hist]
+            counter = Counter(first_move)
+            most_common_first = counter.most_common(1)[0][0]
 
-        
-        table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
-                 [wins, losses, draws, win_rate, most_common_first ]]
+            # show # of games won/lost by user
+            wins = len(self.get_all_wins(user_id))
+            losses = len(self.get_all_losses(user_id))
+            draws = len(self.get_all_draws(user_id))
 
-        print(tabulate(table, headers='firstrow', tablefmt='fancy_grid'))
+            # make sure they have played at least 1 game to avoid divide by 0
+            if games != 0:
+                win_rate = (wins/games) * 100
+            else:
+                win_rate = 0
+
+            table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
+                     [wins, losses, draws, win_rate, most_common_first]]
+
+        game_hist_table = tabulate(
+            table, headers='firstrow', tablefmt='fancy_grid')
+        print(game_hist_table)
+
+        return game_hist_table
 
     def valid_user(self, user_id, pw):
         """ checks if the user exists/they inputted pw correctly """
@@ -306,13 +325,12 @@ class PlayPI:
         next_id = max_id + 1
         return next_id
 
-
     def launch_app(self, user_id):
         """ PlayPal app with options to play a game or get game history """
         user_choice = input("New Game (1)\n"
-                                "Game History (2)\n"
-                                "Close App (9)\n"
-                                "-->   ")
+                            "Game History (2)\n"
+                            "Close App (9)\n"
+                            "-->   ")
         print()
         if user_choice == "9":
             print("Goodbye!")
@@ -327,7 +345,8 @@ class PlayPI:
                 opponent_id = self.get_opponent(user_id, chosen_skill_level)
                 opponent_rating = self.user_rating(opponent_id)
                 opponent_skill = self.user_skill(opponent_id)
-                print("You will be playing against a(n)", opponent_skill, "level player")
+                print("You will be playing against a(n)",
+                      opponent_skill, "level player")
 
                 # PLAY GAME HERE WITH USERNAME AND OPPONENT ID
                 # JOSH - HERE
@@ -342,28 +361,29 @@ class PlayPI:
                 # PRINT FINAL BOARD
                 # print info about game and updated rating
                 if user_id == winner:
-                    print('You beat a(n)', opponent_skill, 'player with a rating of', opponent_rating)
+                    print('You beat a(n)', opponent_skill,
+                          'player with a rating of', opponent_rating)
                 elif user_id == loser:
-                    print('You lost to a(n)', opponent_skill, 'player with a rating of', opponent_rating)
+                    print('You lost to a(n)', opponent_skill,
+                          'player with a rating of', opponent_rating)
                 else:
                     print('It was a tie between you and your opponent. They were a(n)', opponent_skill,
                           'level player with a rating of', opponent_rating)
                 new_user_rating = self.user_rating(user_id)
                 print('After playing, your new rating is', new_user_rating)
 
-
-                self.insert_one_game(game_id, user_id, opponent_id, winner, loser, hist)
+                self.insert_one_game(
+                    game_id, user_id, opponent_id, winner, loser, hist)
                 # PRINT FINAL BOARD
 
             elif user_choice == "2":
                 self.get_game_history(user_id)
 
-
             # load app again
             print()
             self.launch_app(user_id)
 
-    def get_opponent(self, user_id, skill = "4"):
+    def get_opponent(self, user_id, skill="4"):
         """ get opponent's user id """
 
         # set skill level to indicated or randomly choose level
@@ -374,22 +394,14 @@ class PlayPI:
         elif skill == "3":
             skill_level = "advanced"
         else:
-            skill_level = random.choice(['beginner', 'intermediate', 'advanced'])
+            skill_level = random.choice(
+                ['beginner', 'intermediate', 'advanced'])
 
         keys = self.r.keys('users:*')
         keys = [key.split(":")[1] for key in keys]
 
-        all_opponents = [key for key in keys if self.user_skill(key) == skill_level and key != user_id]
+        all_opponents = [key for key in keys if self.user_skill(
+            key) == skill_level and key != user_id]
         opponent_id = random.choice(all_opponents)
 
         return opponent_id
-
-
-
-
-
-
-
-
-
-

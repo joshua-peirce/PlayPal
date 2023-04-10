@@ -13,6 +13,7 @@ import pandas as pd
 from collections import Counter
 import random
 import new_game
+from board import Board
 
 
 class PlayPI:
@@ -226,6 +227,7 @@ class PlayPI:
                           for game in wins_game_hist]
             counter = Counter(first_move)
             most_common_first = counter.most_common(1)[0][0]
+            most_common_first_coord = str(Board(size=3, to_win=3).convert_integer_to_tuple(most_common_first))
 
             # show # of games won/lost by user
             wins = len(self.get_all_wins(user_id))
@@ -239,7 +241,7 @@ class PlayPI:
                 win_rate = 0
 
             table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Most Common First Position'],
-                     [wins, losses, draws, win_rate, most_common_first]]
+                     [wins, losses, draws, win_rate, most_common_first_coord]]
 
         game_hist_table = tabulate(
             table, headers='firstrow', tablefmt='fancy_grid')
@@ -343,6 +345,7 @@ class PlayPI:
                                            "Enter anything else for a random skill level.\n"
                                            "-->   ")
                 print("\n")
+                user_rating = self.user_rating(user_id)
                 opponent_id = self.get_opponent(user_id, chosen_skill_level)
                 opponent_rating = self.user_rating(opponent_id)
                 opponent_skill = self.user_skill(opponent_id)
@@ -357,9 +360,9 @@ class PlayPI:
 
                 # generate next game_id
                 game_id = self.get_new_id("games")
-                # PRINT FINAL BOARD
-                print(winner, loser, hist, game_id)
 
+                self.insert_one_game(
+                    game_id, user_id, opponent_id, winner, loser, hist)
                 # print info about game and updated rating
                 if user_id == winner:
                     print('You beat a(n)', opponent_skill,
@@ -373,9 +376,6 @@ class PlayPI:
                 new_user_rating = self.user_rating(user_id)
                 print('After playing, your new rating is', new_user_rating)
 
-                self.insert_one_game(
-                    game_id, user_id, opponent_id, winner, loser, hist)
-                # PRINT FINAL BOARD
 
             elif user_choice == "2":
                 self.get_game_history(user_id)

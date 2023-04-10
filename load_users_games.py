@@ -6,6 +6,7 @@ import pandas as pd
 # import statements
 from playpal_redis import PlayPI
 import pandas
+import time
 
 # universal variables
 USERS_FILE = 'user_table.csv'
@@ -36,63 +37,6 @@ def load_users(filename, api):
     # load user data into users table using api method
     api.insert_all_users(users_lst)
 
-def update_winner(user_id, api):
-    """ update user's rating and skill after playing a game """
-
-    # get users rating and skill
-    rating = api.user_rating(user_id)
-    skill = api.user_skill(user_id)
-    # update rating
-    if skill == 'beginner':
-        # beginner winning adds 15 to rating
-        api.update_rating(user_id, 15)
-    elif skill == 'intermediate':
-        # intermediate winning adds 10 to rating
-        api.update_rating(user_id, 10)
-    elif skill == 'advanced':
-        # advanced winning adds 5 to rating
-        api.update_rating(user_id, 5)
-        # maximum rating of 500
-        new_rating = api.user_rating(user_id)
-        if new_rating > 500:
-            api.set_rating(user_id, 500)
-
-    # update skill based on new points
-    if rating <= 150:
-        api.update_skill(user_id, 'beginner')
-    elif rating > 150 and rating <= 350:
-        api.update_skill(user_id, 'intermediate')
-    elif rating > 350:
-        api.update_skill(user_id, 'advanced')
-
-
-def update_loser(user_id, api):
-    """ update user's rating and skill after playing a game """
-    # get users rating and skill
-    rating = api.user_rating(user_id)
-    skill = api.user_skill(user_id)
-    # update rating
-    if skill == 'beginner':
-        # beginner loser subtracts 15 from rating
-        api.update_rating(user_id, -5)
-        # minimum rating of 0
-        new_rating = api.user_rating(user_id)
-        if new_rating < 0:
-            api.set_rating(user_id, 0)
-    elif skill == 'intermediate':
-        # intermediate loser subtracts 10 from rating
-        api.update_rating(user_id, -10)
-    elif skill == 'advanced':
-        # advanced loser subtracts 5 from rating
-        api.update_rating(user_id, -15)
-
-    # update skill based on new points
-    if rating <= 150:
-        api.update_skill(user_id, 'beginner')
-    elif rating > 150 and rating <= 350:
-        api.update_skill(user_id, 'intermediate')
-    elif rating > 350:
-        api.update_skill(user_id, 'advanced')
 def load_games(filename, api):
     """
     loads games file into DB
@@ -105,18 +49,20 @@ def load_games(filename, api):
     # turn df into list of lists
     games_lst = games_df.values.tolist()
 
-
     for game in games_lst:
         # add game to database
         api.insert_one_game(*game)
 
-        # # update both users' rating and skill after a game
-        # winner_id = game[WIN_COL]
-        # loser_id = game[LOSE_COL]
-        #
-        # if winner_id != 0:
-        #     update_winner(winner_id, api)
-        #     update_loser(loser_id, api)
+def make_users_advanced(api, amt):
+    """
+    make some users advanced for intial game play
+    amt - number of ids to update skill (advanced) and rating (500)
+    """
+    for id in range(amt):
+        # update rating
+        api.set_rating(id, 500)
+        # update skill
+        api.set_skill(id, 'advanced')
 
 def main():
 
@@ -124,23 +70,27 @@ def main():
     api = PlayPI("playpal")
     api.flush_all()
 
+    start_time = time.time()
     # insert all users
     load_users(USERS_FILE, api)
-    # check users are loaded in by getting info about user 25
-    print(api.get_user(25))
+    end_time = time.time()
+
+    lines = len(USERS_FILE)
+
+    # how many inserts per second
+    insert_rate = round((lines / (end_time - start_time)), 2)
+
+    print("We are able to load", insert_rate, "users / second.")
 
     # insert all games
+    start_time = time.time()
     load_games(GAMES_FILE, api)
-    # check games are loaded by getting info about game 11
-    print(api.get_game(11))
+    end_time = time.time()
 
-    # check updated status of user 25 after playing a bunch of games
-    print(api.get_user(25))
+    # how many inserts per second
+    insert_rate = round((lines / (end_time - start_time)), 2)
 
-    # load in advanced users
-    api.insert_one_user(1001, 'ejdvhew2', 400, 'advanced')
-    api.insert_one_user(1002, 'dwqbhew2', 450, 'advanced')
-    api.insert_one_user(1003, 'denjwvn3', 500, 'advanced')
+    print("We are able to load", insert_rate, "games / second.")
 
 
 

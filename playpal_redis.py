@@ -42,6 +42,20 @@ class PlayPI:
         pw, rating, skill_level = self.r.hmget(f'users:{user_id}', fields)
         return(user_id, pw, rating, skill_level)
 
+    def get_new_user_id(self):
+        max_id = 0
+        cursor = 0
+        while True:
+            cursor, keys = self.r.scan(cursor, match="users:*")
+            for key in keys:
+                user_id = int(key.split(":")[1])
+                if user_id > max_id:
+                    max_id = user_id
+            if cursor == 0:
+                break
+        next_id = max_id + 1
+        return next_id
+
     def user_rating(self, user_id):
         """ gets user rating as int """
         return int(self.r.hget(f'users:{user_id}', 'rating'))

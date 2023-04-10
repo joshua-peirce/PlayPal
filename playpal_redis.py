@@ -12,6 +12,7 @@ from tabulate import tabulate
 import pandas as pd
 from collections import Counter
 import random
+import new_game
 
 class PlayPI:
     """ API simulating Tic Tac Toe Game """
@@ -332,14 +333,14 @@ class PlayPI:
                 # PLAY GAME HERE WITH USERNAME AND OPPONENT ID
                 # JOSH - HERE
 
-                # G = game.Game(username, opponent_id)
-                # winner, loser, hist = G.play()
+                G = new_game.setup_game(user_id, opponent_id, opponent_skill)
+                winner, loser, hist = G.play()
 
                 # generate next game_id
                 game_id = self.get_new_id("games")
-                winner, loser, hist = user_id, opponent_id, '72461'
-
                 # PRINT FINAL BOARD
+                print(winner, loser, hist, game_id)
+
                 # print info about game and updated rating
                 if user_id == winner:
                     print('You beat a(n)', opponent_skill, 'player with a rating of', opponent_rating)

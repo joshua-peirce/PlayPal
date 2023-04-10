@@ -12,10 +12,12 @@ from board import Board
 class Game:
     """Class to hold info and play a game"""
     
-    def __init__(self, p1, p2):
+    def __init__(self, p1, p2, p1id, p2id):
         """Make a new game with players p1 and p2"""
         self.p1 = p1
         self.p2 = p2
+        self.p1id = p1id
+        self.p2id = p2id
         self.board = Board(size=3, to_win=3)
         self.hist = ""
 
@@ -30,11 +32,11 @@ class Game:
         if self.board.check_x_wins():
             self.p1.win(self.board, self.hist)
             self.p2.lose(self.board, self.hist)
-            return "X", "O", self.hist
+            return self.p1id, self.p2id, self.hist
         elif self.board.check_o_wins():
             self.p1.lose(self.board, self.hist)
             self.p2.win(self.board, self.hist)
-            return "O", "X", self.hist
+            return self.p2id, self.p1id, self.hist
         else:
             self.p1.draw(self.board, self.hist)
             self.p2.draw(self.board, self.hist)

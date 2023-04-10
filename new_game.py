@@ -13,7 +13,7 @@ import ai_player
 import random
 
 DIFFICULTIES = [1, 2, 3, 4] #easy, medium, hard, random
-PIECES = [1, 2, 3] #X, O, random
+PIECES = [1, 2, 3, "X", "O"] #X, O, random
 
 def diff_prompt():
     """Tell the user the options for the difficulties they could play against"""
@@ -54,6 +54,8 @@ def get_user_piece():
                 return random.randrange(1, 3)
         except ValueError:
             pass
+    if type(piece) == str:
+        piece = PIECES.index(piece) - 2
     return piece
 
 def get_opp(piece=None, diff=1):
@@ -78,5 +80,19 @@ def new_game():
         print()
         print(f"You played against a{diff_str} opponent!")
 
+def setup_game(uid, oid, diff):
+    user_piece = get_user_piece()
+    opp  = get_opp(piece=["O", "X"][user_piece % 2], diff=diff)
+    user = player.Player(user_piece == 1)
+    if user_piece == 1:
+        p1 = user
+        p2 = opp
+        g = game.Game(p1, p2, uid, oid)
+    else:
+        p1 = opp
+        p2 = user
+        g = game.Game(p1, p2, oid, uid)
+    return g
+    
 if __name__ == "__main__":
     new_game()

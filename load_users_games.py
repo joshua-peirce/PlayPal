@@ -44,14 +44,19 @@ def load_games(filename, api):
     api: particular api to use functions to load csv
     """
     # read csv into dataframe of games
+    start = time.time()
     games_df = pd.read_csv(filename)
-
+    
     # turn df into list of lists
     games_lst = games_df.values.tolist()
+    end = time.time()
+    print("It took {:.3f} seconds to read the games df".format(end - start))
 
     for game in games_lst:
         # add game to database
         api.insert_one_game(*game)
+
+    return len(games_lst)
 
 def make_users_advanced(api, amt):
     """
@@ -84,8 +89,10 @@ def main():
 
     # insert all games
     start_time = time.time()
-    load_games(GAMES_FILE, api)
+    lines = load_games(GAMES_FILE, api)
     end_time = time.time()
+
+
 
     # how many inserts per second
     insert_rate = round((lines / (end_time - start_time)), 2)

@@ -64,15 +64,11 @@ class PlayPI:
         """ add/subtract certain amount to user rating after a game """
         return self.r.hincrby(f'users:{user_id}', 'rating', amt)
 
-    def update_skill(self, user_id, new_skill):
-        """ updates user rating """
-        return self.r.hset(f'users:{user_id}', 'skill_level', new_skill)
-
     def set_rating(self, user_id, amt):
         """ sets rating to certain amount """
         return self.r.hset(f'users:{user_id}', 'rating', amt)
 
-    def set_skil(self, user_id, skill):
+    def set_skill(self, user_id, skill):
         """ sets skill to certain level """
         return self.r.hset(f'users:{user_id}', 'skill_level', skill)
 
@@ -91,64 +87,135 @@ class PlayPI:
 
         # if not a draw
         if winner != 0:
-            self.update_winner(winner)
-            self.update_loser(loser)
+            self.update_rating_skill(winner, loser)
+        else:
+            self.update_draw(p1, p2)
 
-    def update_winner(self, user_id):
-        """ update user's rating and skill after playing a game """
+    def update_draw(self, p1, p2):
+        """ update users' skill and rating after a draw """
+        p1_skill = self.user_skill(p1)
+        p2_skill = self.user_skill(p2)
+        if  p1_skill == 'beginner':
+            if p2_skill == 'beginner':
+                # p1 and p2 get 1 point
+                self.update_rating(p1, 1)
+                self.update_rating(p2, 1)
+            elif p2_skill == 'intermediate':
+                # p1 gets 3, p2 loses 3
+                self.update_rating(p1, 3)
+                self.update_rating(p2, -3)
+            else:
+                # p1 gets 5, p2 loses 5
+                self.update_rating(p1, 5)
+                self.update_rating(p2, -5)
+        elif p1_skill == 'intermediate':
+            if p2_skill == 'beginner':
+                # p1 loses 3 and p2 gets 3
+                self.update_rating(p1, -3)
+                self.update_rating(p2, 3)
+            elif p2_skill == 'intermediate':
+                # p1 and p2 get 1
+                self.update_rating(p1, 1)
+                self.update_rating(p2, 1)
+            else:
+                # p1 gets 3, p2 loses 3
+                self.update_rating(p1, 3)
+                self.update_rating(p2, -3)
+        elif p1_skill == 'advanced':
+            if p2_skill == 'beginner':
+                # p1 loses 5 and p2 gets 5
+                self.update_rating(p1, -5)
+                self.update_rating(p2, 5)
+            elif p2_skill == 'intermediate':
+                # p1 loses 3 and p2 gets 3
+                self.update_rating(p1, -3)
+                self.update_rating(p2, 3)
+            else:
+                # p1 and p2 gets 1
+                self.update_rating(p1, 1)
+                self.update_rating(p2, 1)
+
+
+    def update_rating_skill(self, user_id, opponent_id):
+        """
+            update user's rating and skill after playing a game
+            user_id is winner, opponent_id is loser
+        """
 
         # get users rating and skill
-        rating = self.user_rating(user_id)
-        skill = self.user_skill(user_id)
+        user_rating = self.user_rating(user_id)
+        user_skill = self.user_skill(user_id)
+        opp_rating = self.user_rating(opponent_id)
+        opp_skill = self.user_skill(opponent_id)
         # update rating
-        if skill == 'beginner':
-            # beginner winning adds 15 to rating
-            self.update_rating(user_id, 15)
-        elif skill == 'intermediate':
-            # intermediate winning adds 10 to rating
-            self.update_rating(user_id, 10)
-        elif skill == 'advanced':
-            # advanced winning adds 5 to rating
-            self.update_rating(user_id, 5)
+        if user_skill == 'beginner':
+            if opp_skill == 'beginner':
+                # winner gets 5, loser loses 5
+                self.update_rating(user_id, 15)
+                self.update_rating(opponent_id, -15)
+            elif opp_skill == 'intermediate':
+                # winner gets 10, loser loses 10
+                self.update_rating(user_id, 20)
+                self.update_rating(opponent_id, -20)
+            else:
+                # winner gets 15, loser loses 15
+                self.update_rating(user_id, 25)
+                self.update_rating(opponent_id, -25)
+        elif user_skill == 'intermediate':
+            if opp_skill == 'beginner':
+                # winner gets 10, loser loses 10
+                self.update_rating(user_id, 10)
+                self.update_rating(opponent_id, -10)
+            elif opp_skill == 'intermediate':
+                # winner gets 15, loser loses 15
+                self.update_rating(user_id, 15)
+                self.update_rating(opponent_id, -15)
+            else:
+                # winner gets 20, loser loses 20
+                self.update_rating(user_id, 20)
+                self.update_rating(opponent_id, -20)
+
+        elif user_skill == 'advanced':
+            if opp_skill == 'beginner':
+                # winner gets 5, loser loses 5
+                self.update_rating(user_id, 5)
+                self.update_rating(opponent_id, -5)
+            elif opp_skill == 'intermediate':
+                # winner gets 10, loser loses 10
+                self.update_rating(user_id, 10)
+                self.update_rating(opponent_id, -10)
+            else:
+                # winner gets 15, loser loses 15
+                self.update_rating(user_id, 15)
+                self.update_rating(opponent_id, -15)
+
             # maximum rating of 500
-            new_rating = self.user_rating(user_id)
-            if new_rating > 500:
+            user_rating = self.user_rating(user_id)
+            if user_rating > 500:
                 self.set_rating(user_id, 500)
-
-        # update skill with new points
-        self.update_player_skill(user_id, rating, skill)
-
-    def update_loser(self, user_id):
-        """ update user's rating and skill after playing a game """
-        # get users rating and skill
-        rating = self.user_rating(user_id)
-        skill = self.user_skill(user_id)
-        # update rating
-        if skill == 'beginner':
-            # beginner loser subtracts 15 from rating
-            self.update_rating(user_id, -5)
-            # minimum rating of 0
-            new_rating = self.user_rating(user_id)
-            if new_rating < 0:
+            elif user_rating < 0:
                 self.set_rating(user_id, 0)
-        elif skill == 'intermediate':
-            # intermediate loser subtracts 10 from rating
-            self.update_rating(user_id, -10)
-        elif skill == 'advanced':
-            # advanced loser subtracts 5 from rating
-            self.update_rating(user_id, -15)
+
+            opp_rating = self.user_rating(opponent_id)
+            if opp_rating > 500:
+                self.set_rating(opponent_id, 500)
+            elif opp_rating < 0:
+                self.set_rating(opponent_id, 0)
 
         # update skill with new points
-        self.update_player_skill(user_id, rating, skill)
+        self.update_player_skill(user_id, user_rating)
+        self.update_player_skill(opponent_id, opp_rating)
 
-    def update_player_skill(self, user_id, rating, skill):
+
+
+    def update_player_skill(self, user_id, rating):
         """ updates a user's skill based on rating value """
         if rating <= 150:
-            self.update_skill(user_id, 'beginner')
+            self.set_skill(user_id, 'beginner')
         elif rating > 150 and rating <= 350:
-            self.update_skill(user_id, 'intermediate')
+            self.set_skill(user_id, 'intermediate')
         elif rating > 350:
-            self.update_skill(user_id, 'advanced')
+            self.set_skill(user_id, 'advanced')
 
     def insert_all_games(self, games):
         """ insert all games given a list of lists with game info """

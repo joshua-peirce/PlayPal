@@ -40,14 +40,8 @@ def main():
     # create and start the PlayPal API
     api = PlayPI('playpal')
 
-    # run flushall to clear redis database
-    #api.flush_all()
-
-    # print the overall best first move
-    api.overall_best_first_move()
-
     # use the app from terminal
-    #start_app(api)
+    start_app(api)
 
 
 if __name__ == '__main__':

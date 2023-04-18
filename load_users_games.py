@@ -37,6 +37,9 @@ def load_users(filename, api):
     # load user data into users table using api method
     api.insert_all_users(users_lst)
 
+    #Return the number of users added
+    return len(users_lst)
+
 def load_games(filename, api):
     """
     loads games file into DB
@@ -77,12 +80,11 @@ def main():
 
     start_time = time.time()
     # insert all users
-    load_users(USERS_FILE, api)
+    lines = load_users(USERS_FILE, api)
     end_time = time.time()
 
     # set some users to advanced to start
     make_users_advanced(api, 50)
-    lines = len(USERS_FILE)
 
     # how many inserts per second
     insert_rate = round((lines / (end_time - start_time)), 2)

@@ -5,16 +5,11 @@ Functions to be run in the PlayPal Driver App
 
 # import statements
 import redis
-import uuid
-import time
-import game
 from tabulate import tabulate
-import pandas as pd
 from collections import Counter
 import random
 import new_game
 from board import Board
-
 
 class PlayPI:
     """ API simulating Tic Tac Toe Game """
@@ -24,6 +19,8 @@ class PlayPI:
         self.r = redis.Redis(host=host, port=port, db=db,
                              decode_responses=True)
         self.channel = channel
+        self.EVALUATIONS_PREFIX = "state_"
+        self.EVALUATION_KEY = "eval"
 
     def flush_all(self):
         self.r.flushall()
@@ -500,3 +497,14 @@ class PlayPI:
         opponent_id = random.choice(all_opponents)
 
         return opponent_id
+
+    def save_outcome(self, key, result):
+        """Save the outcome of one board state to the database"""
+        if key == "3;3;0;0":
+            print("Solved the game. The game is a", result)
+            input("Press enter to continue")
+        self.r.hset(self.EVALUATIONS_PREFIX + key, self.EVALUATION_KEY, result)
+
+    def get_outcome(self, key):
+        """Get all the saved states. Note: can return None if no eval known"""
+        return self.r.hget(self.EVALUATIONS_PREFIX + key, self.EVALUATION_KEY)

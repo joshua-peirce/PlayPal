@@ -37,7 +37,7 @@ PIECE_O = "O"
 PIECE_EMPTY = "-"
 
 class Board:
-    def __init__(self, size=3, p=0, x=0, to_win=3, solutions=None):
+    def __init__(self, size=3, p=0, x=0, to_win=None, solutions=None):
         """
         Size is the size of the board, defaults to 3.
         p is the integer representation of the pieces on the board (see top)
@@ -138,7 +138,7 @@ class Board:
     
     def get_seed(self):
         """Returns the simplest representation of the board"""
-        return self.n, self.tw, self.p, self.x
+        return self.n, self.p, self.x
     
     def get_cell_at(self, row, col):
         """Get the piece that is kept at cell (col, row)"""
@@ -155,14 +155,6 @@ class Board:
     def convert_integer_to_tuple(self, move):
         return (move // self.n, move % self.n)
     
-    def clone(self):
-        """Return an identical copy of this board"""
-        return Board(size=self.n,
-                            p=self.p,
-                            x=self.x,
-                            to_win=self.tw,
-                            solutions=self.solutions)
-    
 if __name__ == "__main__":
-    b = Board(size=3)
+    b = Board(size=21, to_win=10)
     print(len(b.solutions))

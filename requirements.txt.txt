@@ -1,0 +1,5 @@
+Required libraries:
+- tabulate
+- pandas
+- redis
+- redispy

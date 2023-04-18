@@ -6,13 +6,14 @@
 - download all files into a folder or clone the repository
 #### Option 1:
 - open the folder in a preferred compiler
-- run the 'load_users_games.py' file
-- run the 'playpal_app.py' file 
+- run the `load_users_games.py` file
+- run the `playpal_app.py` file 
 #### Option 2:
 - open the folder in your device's termial or command prompt
-- run the 'load_users_games' file
-- run the 'playpal_app.py' file
-Files can be run in the command line using 'python <filename>' or 'python3 <filename>'
+- run the `load_users_games` file
+- run the `playpal_app.py` file
+
+Files can be run in the command line using `python <filename>` or `python3 <filename>`
 
 ## Files:
 - ai_player.py: programming for the AI players 

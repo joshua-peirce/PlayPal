@@ -284,16 +284,15 @@ class PlayPI:
         return tied_games
 
     def get_game_history(self, user_id):
-
         # get number of games played by that user
-        games = self.get_all_games(user_id)
-        num_games = len(games)
+        num_games = len(self.get_all_games(user_id))
 
         # get all their wins
         wins = self.get_all_wins(user_id)
+        num_wins = len(wins)
 
         # if zero games, fill with zeros
-        if num_games == 0:
+        if num_wins == 0:
             table = [['Wins', 'Losses', 'Draws', 'Win Rate (%)', 'Best First Position'],
                      [0, 0, 0, 0]]
             print('No game history yet. Play some games to generate data!')
@@ -308,13 +307,12 @@ class PlayPI:
                 Board(size=3, to_win=3).convert_integer_to_tuple(most_common_first))
 
             # show # of games won/lost by user
-            num_wins = len(wins)
             num_losses = len(self.get_all_losses(user_id))
             num_draws = len(self.get_all_draws(user_id))
 
             # make sure they have played at least 1 game to avoid divide by 0
             if num_games != 0:
-                win_rate = (num_wins/num_games) * 100
+                win_rate = (num_wins / num_games) * 100
             else:
                 win_rate = 0
 

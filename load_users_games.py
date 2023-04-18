@@ -80,6 +80,8 @@ def main():
     load_users(USERS_FILE, api)
     end_time = time.time()
 
+    # set some users to advanced to start
+    make_users_advanced(api, 50)
     lines = len(USERS_FILE)
 
     # how many inserts per second

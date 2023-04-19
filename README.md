@@ -5,17 +5,17 @@
 - Stores data using Redis
 ## To Run:
 - 1. Download all files into a folder or clone the repository
-- use current environment or create new environment using `conda create --name playpal_env python=3.9`
-- `conda activate playpal_env`
-- 2. To ensure that all necessary libraries are installed, run 'pip install -r requirements.txt' in current or new playpal_env environment
+- 2. use current environment or create new environment using `conda create --name playpal_env python=3.9`
+- 3. Run `conda activate playpal_env`
+- 4. To ensure that all necessary libraries are installed, run 'pip install -r requirements.txt' in current or new playpal_env environment
 #### Option 1:
 - open the folder in a preferred compiler
 - run the `load_users_games.py` file
 - run the `playpal_app.py` file 
 #### Option 2:
-- open the folder in your device's terminal or command prompt
-- run the `load_users_games` file
-- run the `playpal_app.py` file
+- cd to the folder in your device's terminal or command prompt
+- run the `python load_users_games.py` file  
+- run  `python playpal_app.py` file
 
 Files can be run in the command line using `python <filename>` or `python3 <filename>` depending on your system
 

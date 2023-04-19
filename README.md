@@ -11,7 +11,7 @@
 - run the `load_users_games.py` file
 - run the `playpal_app.py` file 
 #### Option 2:
-- open the folder in your device's termial or command prompt
+- open the folder in your device's terminal or command prompt
 - run the `load_users_games` file
 - run the `playpal_app.py` file
 

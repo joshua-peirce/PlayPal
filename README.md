@@ -4,7 +4,8 @@
 - Programmed with Python
 - Stores data using Redis
 ## To Run:
-- download all files into a folder or clone the repository
+- 1. Download all files into a folder or clone the repository
+- 2. To ensure that all necessary libraries are installed, run 'pip install -r requirements.txt' in current or new environment
 #### Option 1:
 - open the folder in a preferred compiler
 - run the `load_users_games.py` file

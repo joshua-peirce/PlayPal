@@ -9,7 +9,7 @@ NUM_PLAYERS = 1000
 def play_random_game(p1n, p2n):
     p1 = ai_player.RandomPlayer("X")
     p2 = ai_player.RandomPlayer("O")
-    G = game.Game(p1, p2)
+    G = game.Game(p1, p2, p1n, p2n)
     return G.play()
 
 def main():

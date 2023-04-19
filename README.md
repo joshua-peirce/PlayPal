@@ -5,7 +5,9 @@
 - Stores data using Redis
 ## To Run:
 - 1. Download all files into a folder or clone the repository
-- 2. To ensure that all necessary libraries are installed, run 'pip install -r requirements.txt' in current or new environment
+- use current environment or create new environment using `conda create --name playpal_env python=3.9`
+- `conda activate playpal_env`
+- 2. To ensure that all necessary libraries are installed, run 'pip install -r requirements.txt' in current or new playpal_env environment
 #### Option 1:
 - open the folder in a preferred compiler
 - run the `load_users_games.py` file
